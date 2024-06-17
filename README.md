@@ -1,5 +1,5 @@
-# EO_ML
-code using EO data to build ML models 
+# geo-tlbx
+toolbox of code for geospatial processing and analysis 
 
 ## Mac virtual environment (venv) instructions 
 - venv installed in user's base directory 
@@ -32,7 +32,7 @@ https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 
 
  
-### linux commands     
+### Bash commands     
 - pressing tab following a command (cd , ls , vim ) will list all possible files/folders and autofill if there's only one match  
 - run 'pwd' to print working directory and easily copy+paste path later   
 
@@ -86,33 +86,3 @@ check on bash script progress:
 > cd ~/code/bash   
 > ls -ltr  
 > cat *bottom_file.err*  
-
-
-
-## QC image processing:  
-
-```
-seg_version_dir = "/home/Downspout-cel/paraguay_lc/Segmentations/" ## quebracho (Downspout)
-stac_dir = "/home/Downspout-cel/paraguay_lc/stac/grids/"
-if os.path.exists(seg_version_dir):
-    pass
-else:
-    seg_version_dir  = "/home/downspout-cel/paraguay_lc/Segmentations/" ## bellows (downspout)
-    stac_dir = "/home/downspout-cel/paraguay_lc/stac/grids/"
-
-###
-    
-print(seg_version_dir)
-not_ready = []
-
-for foldr in sorted(os.listdir(stac_dir)):
-    UNQ_cell = int(foldr[2:])
-    for vi in ["evi2", "gcvi", "wi"]:
-        VI_path = os.path.join(stac_dir, str(foldr), "brdf_ts", "ms", str(vi))
-        if not os.path.exists(VI_path) and UNQ_cell in rdy_cells:
-            print(VI_path)
-            not_ready.append(VI_path)
-not_ready_cells = list(set([int(i.split("/")[6]) for i in not_ready]))
-not_ready_cells
-```
-
