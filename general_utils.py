@@ -1,14 +1,17 @@
 import os
 import pandas as pd
-
 ## under FILES, for find_file_diff function
 import difflib
-
 ## for TIME functions
 import datetime
 from datetime import timedelta
 from datetime import datetime
 import math
+## under POSTGRESQL
+import psycopg2
+## under MDB
+import sqlite3
+
 
 ################################
 ## FILES
@@ -36,6 +39,56 @@ def find_file_diff(file1, file2, diff_file):
     ## returns difference file's filepath as a string
     return diff_file 
 
+
+################################
+## MDB 
+################################
+
+def list_mdb_tables(in_db):
+    # Create a SQL connection to our SQLite database
+    con = sqlite3.connect(in_db)
+    cur = con.cursor()
+    # reading all table names
+    table_list = [a for a in cur.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+    # Be sure to close the connection
+    con.close()
+
+def mdb_table_as_df(in_db, table_name):
+    sqlite3.connect(in_db)
+    cursor = conn.execute("SELECT * from "+table_name)
+    entries=[]
+    for i in cursor:
+        entries.append(i)
+    return pd.DataFrame(entries)
+
+################################
+## POSTGRESQL
+################################
+
+def update_posgres_table(df, table_name, db, usr, pwd, localhost="localhost", port="5432"):
+    conn = psycopg2.connect(database = db, user = usr, password = pwd, host = localhost, port = port)
+    cur = conn.cursor()
+    col_names = df.columns.to_list()
+    for i in range(0 ,len(df)):
+        values = tuple(df[col][i] for col in col_names)
+        cur.execute("INSERT INTO {} ({}) VALUES({})".format(table_name, ", ".join(col_names), ", ".join(["%s"] * len(col_names))
+    ))
+    conn.commit()
+    conn.close()
+
+def query_postgres(SQL_query, db, usr, pwd, localhost, port):
+    conn = psycopg2.connect(database = db, user = usr, password = pwd, host = localhost, port = port)
+    cur = conn.cursor()
+    cur.execute(SQL_query)
+    hits=[]
+    items = cur.fetchall()
+    for i in items:
+        hits.append(i)
+    hits_df=pd.DataFrame(hits, columns=SQL_query[7:].split(" FROM ")[0].split(","))
+    hits_df.rename(columns={ df.columns[:2]:["lon", "lat"]}, inplace = True)
+    print(hits_df)
+    hits_gdf = gpd.GeoDataFrame(hits_df, geometry=gpd.points_from_xy(hits_df.iloc[:,0],hits_df.iloc[:,1], crs="EPSG:4326"))
+    return hits_gdf
 
 ################################
 ## TIME
