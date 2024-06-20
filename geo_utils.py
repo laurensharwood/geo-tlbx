@@ -10,6 +10,7 @@ from rasterio.features import shapes
 ## under GEO, for transform_point_coords
 from pyproj import Proj, transform
 ## under GEO, for address_to_yx
+import pygris
 from pygris.geocode import geocode
 ## under CENSUS
 from pygris import counties, tracts, block_groups, blocks
@@ -24,14 +25,10 @@ from tcxreader.tcxreader import TCXReader, TCXTrackPoint
 ## under TCX/GPX, adding to postgreSQL db
 import psycopg2
 
-## to-do: remove hard coding of data crs
-
-
 import general_utils as gu
 import raster_utils as ru
 import vector_utils as vu
 import plot_utils as pu
-
 
 ################################
 ## GEO 
@@ -42,7 +39,7 @@ def address_to_yx(address):
     long = df.iloc[0].longitude
     lat = df.iloc[0].latitude
     return (lat, long)
-    
+
 def transform_point_coords(inepsg, outepsg, XYcoords):
     """takes 'XYcoords': (lon,lat) coordinate pair as a tuple or list, in their 'inepsg': coordinate reference system EPGS (as an integer), and returns that (lon,lat) pair as a tuple or list in 'outepsg':output EPSG (as an integer)"""
     lon,lat = transform(
@@ -51,47 +48,6 @@ def transform_point_coords(inepsg, outepsg, XYcoords):
         XYcoords[1],
         XYcoords[0])
     return (lon,lat)
-    
-
-################################
-## CENSUS 
-################################
-
-def get_state_counties(state_abr):
-    shapes = counties(state = validate_state(state_abr), cb = True, cache = True)
-    return shapes
-    
-def get_state_tracts(state_abr):
-    shapes = tracts(state = validate_state(state_abr), cb = True, cache = True)
-    return shapes
-
-def get_state_block_groups(state_abr):
-    shapes = tracts(state = validate_state(state_abr), cb = True, cache = True)
-    return shapes
-
-def get_state_blocks(state_abr):
-    shapes = blocks(state = validate_state(state_abr), cb = True, cache = True)
-    return shapes
-
-def get_buffered_address_tracts(addr, buff_dist):
-    shapes = tracts(state = validate_state(str(addr[-8:-6])), cb = True, subset_by = {addr: subset_buff_dist_m}, cache = True)
-    return shapes
-
-def get_buffered_address_block_groups(addr, buff_dist):
-    shapes = block_groups(state = validate_state(str(addr[-8:-6])), cb = True, subset_by = {addr: subset_buff_dist_m}, cache = True)
-    return shapes
-
-def get_buffered_address_blocks(addr, buff_dist):
-    shapes = blocks(state = validate_state(str(addr[-8:-6])), subset_by = {addr: subset_buff_dist_m}, cache = True)
-    return shapes
-
-def get_census_var(region, state_abr, acs_var_id, acs_yr):
-    census_var = get_census(dataset = "acs/acs5", variables = acs_var_id, year = acs_yr, 
-                            params = {"for": region+":*", "in": f"state:{validate_state(state_abr)}"},
-                            guess_dtypes = True, return_geoid = True)
-    # census_dict = dict(zip(census_var['GEOID'], census_var[acs_var_id]))
-    return census_var
-    
 
 ################################
 ## RASTER TO VECTOR
@@ -132,6 +88,12 @@ def extract_pts(gdfPts, inRast):
         gdf[col_name] = [x[0] for x in src.sample(coords_list)]
     return gdf
 
+def pts_to_lines(pts_df, group_col, x_col="lon", y_col="lat", crs=4326):
+    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df.x_col, pts_df.y_col)], crs=crs)
+    lines = gdf.groupby([group_col])['geometry'].apply(lambda x: LineString(x.tolist()))
+    lines_gdf = gpd.GeoDataFrame(lines, geometry='geometry', crs=crs)
+    return lines_gdf
+    
 def line_pofile(inRast, coords):
     """uses 'inRast':elevation raster/DEM to calculate the profile (distance vs. altitude) of a path segment from 'coords': the list of coordinates. 
     returns two items: the total distance (in miles) and elevation (in feet)"""
@@ -144,7 +106,41 @@ def line_pofile(inRast, coords):
         # use haversine distance
         dist.append(dist[j] + haversine((coords[j][1], coords[j][0]), (coords[j + 1][1], coords[j + 1][0]), Unit.MILES))
     return dist, elev
-    
+
+def zonal_stat(instance_shape, in_rast, stat="mean"): 
+    """
+    instance_shape = polygon shapefile to calculate raster stat within. saves output shape in that directory with _TS appended 
+    rast_dir = input raster directory, where each raster's name must be called YYYYJD.tif 
+    start_date & end_date format YYYYJD
+    stat options: mean, median, std, var"""
+    with rio.open(in_rast) as tmp:
+        rast_crs = tmp.crs
+    polys = gpd.read_file(instance_shape) 
+    if polys.crs == rast_crs:
+        polys_stat = zonal_stats(field_instance_shp, in_rast, stats=[stat], geojson_out=True)
+        for p in polys_stat: 
+            p['properties'][str(os.path.basename(in_rast).split(".")[0])+stat] = p['properties'].pop(stat)
+        feat = {'type': 'FeatureCollection', 'features':pd.DataFrame(polys_stat)}
+        polys_stat_gdf = gpd.GeoDataFrame.from_features(feat).set_crs(rast_crs, allow_override=True).dropna()
+    return polys_stat_gdf
+
+def zonal_time_series(instance_shape, rast_dir, start_date, end_date, stat="mean"): 
+    """
+    instance_shape = polygon shapefile to calculate raster stat within
+    rast_dir = input raster directory, where each raster's name must be called YYYYJD.tif 
+    start_date & end_date format YYYYJD (year-julian date)
+    stat options: mean, median, std, var"""
+    stat_dates = []
+    rast_list = [os.path.join(rast_dir, i) for i in sorted(os.listdir(rast_dir) if (img.endswith('.tif') & (int(img[:-4]) <= end_date) & (int(img[:-4]) >= start_date))]
+    with rio.open(rast_list[0]) as tmp:
+        rast_crs = tmp.crs
+    polys = gpd.read_file(instance_shape) 
+    if polys.crs == rast_crs:
+        for in_rast in rast_list:
+            stat_dates.append(zonal_stat(instance_shape, in_rast, stat))
+        stats_df_merged = pd.concat(stat_dates)
+    return stats_dates_gdf
+
 def poly_area_weight_avg(gdf, IDcol, inRast):
     '''
     raster - polygon area weighted average 
@@ -269,53 +265,10 @@ def extract_train_val_polys(inRast, input_shape, class_field, filter_string, TV_
     TV_df.to_csv(train_holdout_csv)
     return train_holdout_csv 
 
-def zonal_time_series(instance_shape, full_raster_dir, start_date, end_date, stat="mean"): 
-    ## to-do: find crs of raster 
-    field_instance = gpd.read_file(instance_shape) 
-    field_instance = field_instance.set_crs("EPSG:4326") # original polygon CRS
-    field_instance = field_instance.to_crs("EPSG:8858") # raster VI CRS 
-    field_instance['area'] =  field_instance['length']*field_instance['width']
-    field_instance_shp = field_instance.drop(['raster_val', 'width', 'length'], axis=1) # remove other fields 
-    rast_list = [] # initialize list for rasters within time window
-    stats_dates = [] # initialize list for merged stats from each raster in rast_list
-    for img in sorted(os.listdir(full_raster_dir)): # to-do: make this a one line statement
-        if img.endswith('.tif'):
-            if (int(img[:-4]) <= end_date) & (int(img[:-4]) >= start_date): 
-                rast_list.append(os.path.join(full_raster_dir,img)) 
-            else:
-                pass       
-    print('number of images from ' + str(start_date) + ' to ' + str(end_date) +  ': ', len(rast_list))
-    for rast in rast_list:
-        rast_split = rast.split('/')
-        poly_stats = zonal_stats(field_instance_shp, rast, stats=[stat], geojson_out=True) #, 'median'
-        #newkeymedian = str(rast_split[-1][:7]) + 'D'
-        newkeymean = str(rast_split[-1][:7]) + 'U' ## to-do: fix this 
-        for p in poly_stats: 
-           # p['properties'][newkeymedian] = p['properties'].pop('median')
-            p['properties'][newkeymean] = p['properties'].pop(stat)
-        stats_dates.append(poly_stats)
-    stats_df = pd.DataFrame(stats_dates) 
-    stats_df_merged = stats_df.iloc[0] 
-    for field in stats_df: 
-        field_property={} # initialize dictionary for {year:VIvalue}
-        for time in stats_df[field]:
-            field_property.update(time['properties'])
-        stats_df_merged.iloc[field]['properties'] = field_property
-    feat = {"type": "FeatureCollection", "features":stats_df_merged}
-    stats_dates_gdf = gpd.GeoDataFrame.from_features(feat).dropna()
-    stats_dates_gdf = stats_dates_gdf.set_crs(8858, allow_override=True)
-    stats_dates_gdf = stats_dates_gdf.to_crs(4326)    
-    index=full_raster_dir.split("/")[-2].upper()
-    grid=full_raster_dir.split("/")[-5][-4:]
-    out_name = instance_shape[:-5] + '_' + str(index) + '_TS.gpkg'
-    stats_dates_gdf.to_file(out_name, driver='GPKG')
-    return out_name
-
 
 ################################
 ## TCX / GPX ACTIVITY PARSING 
 ################################
-    
 
 def parse_tcx(data_dir):
     ''' 
@@ -402,16 +355,65 @@ def update_tcx_table(df, db, usr, pwd, localhost, port):
     print("Records created successfully")
     conn.close()
 
-def query_postgres(SQL_query, db, usr, pwd, localhost, port):
-    conn = psycopg2.connect(database = db, user = usr, password = pwd, host = localhost, port = port)
-    cur = conn.cursor()
-    cur.execute(SQL_query)
-    hits=[]
-    items = cur.fetchall()
-    for i in items:
-        hits.append(i)
-    hits_df=pd.DataFrame(hits, columns=SQL_query[7:].split(" FROM ")[0].split(","))
-    hits_gdf = gpd.GeoDataFrame(hits_df, geometry=gpd.points_from_xy(hits_df.iloc[:,0],hits_df.iloc[:,1], crs="EPSG:4326"))
-    return hits_gdf
 
+################################
+## CENSUS 
+################################
 
+## by county
+def get_county_blocks(county, state_abr):
+    county_shape = pygris.blocks(state = state_abr, county = county)
+    return county_shape
+
+def get_county_block_groups(county, state_abr):
+    county_shape = pygris.block_groups(state = state_abr, county = county, cb = True)
+    return county_shape
+
+def get_county_tracts(county, state_abr):
+    county_shape = pygris.tracts(state = state_abr, county = county, cb = True)
+    return county_shape
+    
+## by state
+def get_state_counties(state_abr):
+    shapes = counties(state = validate_state(state_abr), cb = True, cache = True)
+    return shapes
+    
+def get_state_tracts(state_abr):
+    shapes = tracts(state = validate_state(state_abr), cb = True, cache = True)
+    return shapes
+
+def get_state_block_groups(state_abr):
+    shapes = tracts(state = validate_state(state_abr), cb = True, cache = True)
+    return shapes
+
+def get_state_blocks(state_abr):
+    shapes = blocks(state = validate_state(state_abr), cb = True, cache = True)
+    return shapes
+
+## by buffered distance of address 
+def get_tracts_groups_by_addr_buff(addr, buff_dist):
+    shapes = tracts(state = validate_state(str(addr[-8:-6])), cb = True, subset_by = {addr: subset_buff_dist_m}, cache = True)
+    return shapes
+
+def get_block_groups_by_addr_buff(addr, buff_dist):
+    shapes = block_groups(state = validate_state(str(addr[-8:-6])), cb = True, subset_by = {addr: subset_buff_dist_m}, cache = True)
+    return shapes
+
+def get_blocks_by_addr_buff(addr, buff_dist):
+    shapes = blocks(state = validate_state(str(addr[-8:-6])), subset_by = {addr: subset_buff_dist_m}, cache = True)
+    return shapes
+
+## get primary roads 
+def get_roads_by_county(county, state):
+    roads = pygris.roads(state = state, county = county, cache = True)
+    ## roads.explore()
+    return roads
+    
+## get acs census variable 
+def get_census_var(region, state_abr, acs_var_id, acs_yr):
+    census_var = get_census(dataset = "acs/acs5", variables = acs_var_id, year = acs_yr, 
+                            params = {"for": region+":*", "in": f"state:{validate_state(state_abr)}"},
+                            guess_dtypes = True, return_geoid = True)
+    # census_dict = dict(zip(census_var['GEOID'], census_var[acs_var_id]))
+    return census_var
+    
