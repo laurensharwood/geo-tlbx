@@ -19,22 +19,35 @@ import ipywidgets as widgets
 ## GENERAL GEE IMAGE COLLECTION
 ################################
 
-def get_gee(gee_name, start, end, aoi_shape, region):
-    gdf = gpd.read_file(aoi_shape)
+def gee_image_col(img_col, band_name, aoi_shape, region=None):
+    if type(aoi_shape)==str:
+        gdf = gpd.read_file(aoi_shape)
     gdf = gdf.set_crs(gdf.crs)
     gdf_web = gdf.to_crs("EPSG:4326")
-    gdf_web = gdf_web[gdf_web["region"] == str(region)]
+    if "grid" in aoi_shape:
+        gdf_web = gdf_web[gdf_web["region"] == str(region)]
     aoi = ee.Geometry.Rectangle([gdf_web.bounds.minx.min(), gdf_web.bounds.miny.min(), gdf_web.bounds.maxx.max(), gdf_web.bounds.maxy.max()])
-    collection = ee.ImageCollection(gee_name).filterBounds(aoi).filterDate(start, end)
+    collection = ee.ImageCollection(img_col).filterBounds(aoi).select(band_name)
     clip_col = collection.map(lambda col : col.clip(aoi))
     return clip_col
 
+def gee_image_time_series(img_col, start, end, aoi_shape, region=None):
+    if type(aoi_shape)==str:
+        gdf = gpd.read_file(aoi_shape)
+    gdf = gdf.set_crs(gdf.crs)
+    gdf_web = gdf.to_crs("EPSG:4326")
+    if "grid" in aoi_shape:
+        gdf_web = gdf_web[gdf_web["region"] == str(region)]
+    aoi = ee.Geometry.Rectangle([gdf_web.bounds.minx.min(), gdf_web.bounds.miny.min(), gdf_web.bounds.maxx.max(), gdf_web.bounds.maxy.max()])
+    collection = ee.ImageCollection(img_col).filterBounds(aoi).filterDate(start, end)
+    clip_col = collection.map(lambda col : col.clip(aoi))
+    return clip_col
 
 ################################
 ## PLANETSCOPE TIME SERIES
 ################################
 
-def planet_monthly_timeseries(region_num, chip_shape, poly_shape, start_date, end_date, plot_YYYYMM, export_composite=False):
+def planet_monthly_timeseries(region_num, chip_shape, poly_shape, start_date, end_date, plot_YYYYMM, NICFI_prod="projects/planet-nicfi/assets/basemaps/americas", export_composite=False):
     '''
     region_num = chip region number
     chip_shape = full file path to user_train chip region shapefile 
@@ -74,7 +87,7 @@ def planet_monthly_timeseries(region_num, chip_shape, poly_shape, start_date, en
         featuree = ee.Feature(ge)
         featuress.append(featuree)
         chip_ee_object = ee.FeatureCollection(featuress)
-    planet_NDVI = get_gee(gee_name="projects/planet-nicfi/assets/basemaps/americas", 
+    planet_NDVI = gee_image_time_series(gee_name=NICFI_prod, 
                  start=start_date, end=end_date, 
                  aoi_shape=chip_shape, 
                  region=region_num).map(get_ndvi).toBands()
@@ -107,11 +120,11 @@ def planet_ndvi_metrics(region, aoi_shape, plot_YYYYMM, out_dir):
     Map = geemap.Map(center=(float(gdf_web.geometry.centroid.y), float(gdf_web.geometry.centroid.x)), zoom=15)
     #Map.add_basemap('HYBRID')
     Map.add_tile_layer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', name='Google Satellite', attribution='Google')
-    RGB = gee_download(gee_name="projects/planet-nicfi/assets/basemaps/africa",
+    RGB = gee_download(gee_name=NICFI_prod,
                  start=start_date, end=end_date,
                  aoi_shape=chip_shape,
                  region=region)   #.map(add_ndvi)
-    planet_VI = gee_download(gee_name="projects/planet-nicfi/assets/basemaps/africa",
+    planet_VI = gee_download(gee_name=NICFI_prod,
                  start=start_date, end=end_date,
                  aoi_shape=chip_shape,
                  region=region).map(get_ndvi).toBands()
@@ -152,7 +165,7 @@ def get_monthly_timeseries(region_num, chip_shape, start_date, end_date, plot_YY
         feature = ee.Feature(ge)
         features.append(feature)
         chip_ee_object = ee.FeatureCollection(features)
-    planet_NDVI = get_gee(gee_name="projects/planet-nicfi/assets/basemaps/americas", 
+    planet_NDVI = get_gee(gee_name=NICFI_prod, 
                  start=start_date, end=end_date, 
                  aoi_shape=chip_shape, 
                  region=region_num).map(get_ndvi).toBands()

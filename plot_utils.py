@@ -237,7 +237,7 @@ def plot_heatmap(df, out_name):
     heatmap.save(out_name)
     return heatmap
 
-def cal_heatmap(df, columnName):
+def cal_heatmap(df, col_name, mpl_cmap):
     df = df[df.ascent < 20000]
     df['ascent_ft'] = [float(i)*float(3.28084) for i in df.ascent.to_list()]
     df['ascent_m'] = np.where( df['ascent'] >= 2000, 2000, df['ascent'])
@@ -249,8 +249,8 @@ def cal_heatmap(df, columnName):
     df = df[df['Year'] > 2019]
     df = df[df['Year'] < 2024]
     df = df.sort_values('PST')
-    events = pd.Series([i for i in df[columnName]], 
+    events = pd.Series([i for i in df[col_name]], 
                        index=[i for i in df['PST'].astype('datetime64[ns]')])
-    calplot.calplot(events, suptitle="running "+columnName+" per day", cmap='YlOrBr', colorbar=True)
-    pyplot.savefig(os.path.join(running_fig_dir, columnName+'_heatCal.png'))
+    calplot.calplot(events, suptitle="running "+col_name+" per day", cmap=mpl_cmap, colorbar=True)
+    pyplot.savefig(os.path.join(running_fig_dir, col_name+'_heatCal.png'))
 

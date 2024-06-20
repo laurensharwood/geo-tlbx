@@ -5,7 +5,8 @@ import geopandas as gpd
 ## under PROJECT PREP, for create_proc_grid function
 import shapely
 from shapely.geometry import Polygon, LineString, Point, MultiPoint, box
-
+## under GEO PROCESSING
+from shapely.ops import nearest_points
 ## for functions under POINT_PATTERN_ANALYSIS
 from pointpats import centrography
 from sklearn.neighbors import KernelDensity
@@ -56,11 +57,26 @@ def wkt_bounds(grid_file):
 ################################
 ## GEO PROCESSING
 ################################
-
+    
 def lon_lat_to_gdf(points_df):
     pts_gdf = gpd.GeoDataFrame(points_df, geometry=gpd.points_from_xy(points_df.lon, points_df.lat, crs=4326))
     return pts_gdf
 
+def transform_point_coords(inepsg, outepsg, XYcoords):
+    """takes 'XYcoords': (lon,lat) coordinate pair as a tuple or list, in their 'inepsg': coordinate reference system EPGS (as an integer), and returns that (lon,lat) pair as a tuple or list in 'outepsg':output EPSG (as an integer)"""
+    lon,lat = transform(
+        Proj(init="EPSG:"+str(inepsg)), 
+        Proj(init="EPSG:"+str(outepsg)), 
+        XYcoords[1],
+        XYcoords[0])
+    return (lon,lat)
+
+def address_to_yx(address):
+    df = geocode(address = address) ## uses pygris 
+    long = df.iloc[0].longitude
+    lat = df.iloc[0].latitude
+    return (lat, long)
+    
 def merge_vectors(in_files):
     """combines 'in_files': a list of vector shapes (as long as they have the same column names).
     returns the full merged geodataframe"""
@@ -80,8 +96,26 @@ def xyz_to_gdf(input_xyz):
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['x'].astype(float), df['y'].astype(float)))
     return gdf
     
+def unnest(gdf):
+    return gdf.explode(index_parts=True)
 
+def pts_to_lines(pts_df, group_col, x_col="lon", y_col="lat", crs=4326):
+    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df.x_col, pts_df.y_col)], crs=crs)
+    lines = gdf.groupby([group_col])['geometry'].apply(lambda x: LineString(x.tolist()))
+    lines_gdf = gpd.GeoDataFrame(lines, geometry='geometry', crs=crs)
+    return lines_gdf
 
+def snap_pt_to_line_xy(pts, lines)
+    if pts.crs != lines.crs:
+        pts = pts.to_crs(lines.crs)
+    pts["pt_geom"] = pts.geometry #Save the point geometry or it is lost in spatial join
+    #Join the points to the lines
+    points_join = gpd.sjoin_nearest(left_df=lines, right_df=pts, how="inner", max_distance=0.00005, distance_col="line_dist")
+    #Duplicate points/rows are created when there are multiple join features within max_distance. Drop the duplicates, keep the nearest
+    points_join = points_join.sort_values(by=["road_dist", "time"], ascending=True).drop_duplicates(subset="time", keep="first")
+    points_join["line_point"] = points_join.apply(lambda x: nearest_points(g1=x["geometry"], g2=x["pt_geom"])[0], axis=1) #Calculate nearest points on line and the joined point. Keep index [0], which is the point on the line nearest to the joined point
+    return gpd.GeoDataFrame(points_join, geometry=points_join["line_point"], crs=pts.crs)
+    
 ################################
 ## POINT PATTERN ANALYSIS
 ################################

@@ -30,24 +30,6 @@ import raster_utils as ru
 import vector_utils as vu
 import plot_utils as pu
 
-################################
-## GEO 
-################################
-
-def address_to_yx(address):
-    df = geocode(address = address)
-    long = df.iloc[0].longitude
-    lat = df.iloc[0].latitude
-    return (lat, long)
-
-def transform_point_coords(inepsg, outepsg, XYcoords):
-    """takes 'XYcoords': (lon,lat) coordinate pair as a tuple or list, in their 'inepsg': coordinate reference system EPGS (as an integer), and returns that (lon,lat) pair as a tuple or list in 'outepsg':output EPSG (as an integer)"""
-    lon,lat = transform(
-        Proj(init="EPSG:"+str(inepsg)), 
-        Proj(init="EPSG:"+str(outepsg)), 
-        XYcoords[1],
-        XYcoords[0])
-    return (lon,lat)
 
 ################################
 ## RASTER TO VECTOR
@@ -88,12 +70,6 @@ def extract_pts(gdfPts, inRast):
         gdf[col_name] = [x[0] for x in src.sample(coords_list)]
     return gdf
 
-def pts_to_lines(pts_df, group_col, x_col="lon", y_col="lat", crs=4326):
-    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df.x_col, pts_df.y_col)], crs=crs)
-    lines = gdf.groupby([group_col])['geometry'].apply(lambda x: LineString(x.tolist()))
-    lines_gdf = gpd.GeoDataFrame(lines, geometry='geometry', crs=crs)
-    return lines_gdf
-    
 def line_pofile(inRast, coords):
     """uses 'inRast':elevation raster/DEM to calculate the profile (distance vs. altitude) of a path segment from 'coords': the list of coordinates. 
     returns two items: the total distance (in miles) and elevation (in feet)"""
@@ -266,9 +242,12 @@ def extract_train_val_polys(inRast, input_shape, class_field, filter_string, TV_
     return train_holdout_csv 
 
 
+
+
 ################################
 ## TCX / GPX ACTIVITY PARSING 
 ################################
+    
 
 def parse_tcx(data_dir):
     ''' 
