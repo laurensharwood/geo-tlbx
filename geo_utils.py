@@ -12,10 +12,7 @@ from pyproj import Proj, transform
 ## under GEO, for address_to_yx
 import pygris
 from pygris.geocode import geocode
-## under CENSUS
-from pygris import counties, tracts, block_groups, blocks
-from pygris import validate_state
-from pygris.data import get_census
+
 ## under EXTRACT RASTER, for zonal_time_series function
 from rasterstats import zonal_stats 
 ## parsing TCX/GPX functions
@@ -24,7 +21,13 @@ import tcxreader
 from tcxreader.tcxreader import TCXReader, TCXTrackPoint
 ## under TCX/GPX, adding to postgreSQL db
 import psycopg2
-
+## under CENSUS
+from pygris import counties, tracts, block_groups, blocks
+from pygris import validate_state
+from pygris.data import get_census
+## under OPENSTREETMAP
+import overpy
+## geo-tlbx functions/modules
 import general_utils as gu
 import raster_utils as ru
 import vector_utils as vu
@@ -107,7 +110,7 @@ def zonal_time_series(instance_shape, rast_dir, start_date, end_date, stat="mean
     start_date & end_date format YYYYJD (year-julian date)
     stat options: mean, median, std, var"""
     stat_dates = []
-    rast_list = [os.path.join(rast_dir, i) for i in sorted(os.listdir(rast_dir) if (img.endswith('.tif') & (int(img[:-4]) <= end_date) & (int(img[:-4]) >= start_date))]
+    rast_list = [ os.path.join(rast_dir, i) for i in sorted(os.listdir(rast_dir)) if (i.endswith('.tif') and (int(i[:-4]) <= end_date) and (int(i[:-4]) >= start_date))]    
     with rio.open(rast_list[0]) as tmp:
         rast_crs = tmp.crs
     polys = gpd.read_file(instance_shape) 
@@ -387,12 +390,49 @@ def get_roads_by_county(county, state):
     roads = pygris.roads(state = state, county = county, cache = True)
     ## roads.explore()
     return roads
-    
-## get acs census variable 
-def get_census_var(region, state_abr, acs_var_id, acs_yr):
+
+def get_census_var_gdf(hierarch_region, county_name, state_abr):
+    '''
+    hierarch_region options: tract or block group for region
+    '''
+    shape = pygris.tracts(county=county_name, state=state_abr, cb=True)
     census_var = get_census(dataset = "acs/acs5", variables = acs_var_id, year = acs_yr, 
-                            params = {"for": region+":*", "in": f"state:{validate_state(state_abr)}"},
+                            params = {"for":hierarch_region+":*", "in": f"state:{validate_state(state_abr)}"},
                             guess_dtypes = True, return_geoid = True)
-    # census_dict = dict(zip(census_var['GEOID'], census_var[acs_var_id]))
-    return census_var
-    
+    census_join = shape.set_index("GEOID").join(census_var.set_index("GEOID")).reset_index()
+    return census_join
+
+
+################################
+## OPENSTREETMAP 
+#########################s#######
+
+def OSM_drinking_fountains(bbox):
+    api = overpy.Overpass()
+    # fetch all ways and nodes
+    result = api.query("""node(%f,%f,%f,%f) ["amenity"="drinking_water"]; (._;>;); out body; """ % bbox)
+    pois=[]
+    for pt in result.nodes:
+        pois.append((pt.lat, pt.lon))
+    drinking = pd.DataFrame([pois]).T
+    drinking.columns=["drinking_water"]
+    return drinking 
+
+def OSM_highways(bbox):
+    api = overpy.Overpass()
+    # fetch all ways and nodes
+    result = api.query("""way(%f,%f,%f,%f) ["highway"]; (._;>;); out body; """ % bbox)
+    ## result = api.query("""way(%f,%f,%f,%f) ["highway"="footway"]["highway"="path"]; (._;>;); out body; """ % bbox)
+    names=[]
+    roadtypes=[]
+    roads_nodes=[]
+    for way in result.ways:
+        names.append(way.tags.get("name", "n/a"))
+        roadtypes.append(way.tags.get("highway", "n/a"))
+        nodes=[]
+        for node in way.nodes:
+            nodes.append((node.lat, node.lon))
+        roads_nodes.append(nodes)
+    roads_df = pd.DataFrame([names, roadtypes, roads_nodes]).T
+    roads_df.columns = ["name", "type", "coords"]
+    return roads_df
