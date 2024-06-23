@@ -407,7 +407,7 @@ def get_census_var_gdf(hierarch_region, county_name, state_abr):
 ## OPENSTREETMAP 
 #########################s#######
 
-def OSM_drinking_fountains(bbox):
+def osm_drinking_fountains(bbox):
     api = overpy.Overpass()
     # fetch all ways and nodes
     result = api.query("""node(%f,%f,%f,%f) ["amenity"="drinking_water"]; (._;>;); out body; """ % bbox)
@@ -418,7 +418,7 @@ def OSM_drinking_fountains(bbox):
     drinking.columns=["drinking_water"]
     return drinking 
 
-def OSM_highways(bbox):
+def osm_highways(bbox):
     api = overpy.Overpass()
     # fetch all ways and nodes
     result = api.query("""way(%f,%f,%f,%f) ["highway"]; (._;>;); out body; """ % bbox)
