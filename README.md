@@ -1,5 +1,6 @@
 # geo-tlbx
 toolbox of code using geospatial data  
+ 
 
 ## STANDARDS
 improve geographic information's utility & value by increasing its interoperability, reusability, reliability, access, etc.   
@@ -34,6 +35,13 @@ Standards:
 * FGDC [standards list](https://www.fgdc.gov/standards/list) includes standards from FGDC, along wtih OGC and ISO 
 
 ## [Metadata Creation](https://www.usgs.gov/data-management/metadata-creation)
+Best Practices: 
+* Gather all information together & reuse information that is already developed, e.g. abstract, purpose, date from grant or funding proposals
+* Choose a descriptive title for your data that incorporates who, what, where, when, and scale.
+* Choose keywords wisely -- consider all of the possible interpretations of your word choices.
+* Include as many details as you can in the metadata record for future users of the data.
+* Update the metadata date (date stamp) so that metadata repositories will know which version of the record is most recent.
+* DOI should go in the primary <onlink> in the Citation Information section and should be a URL. 
 
 ### GIS metadata standards:  
 - ISO 19115: Geographic information — Metadata  
@@ -115,22 +123,29 @@ gdf.to_file("out_file.gpkg", driver="GPKG")
 
 * some drivers support mode="a" to append 
 
-| Driver | Extension | 
-| ----- | ----- |
-| GPKG  | .gpkg    |
-| ESRI Shapefile | .shp |
-| OpenFileGDB    |.gdb  |
-| GeoJSON    | .json   |
-| SQLite | .db, .sqlite  |
+| Driver | Extension | Name | 
+| ----- | ----- |----- |
+| GPKG  | .gpkg    | geopackage |
+| ESRI Shapefile | .shp | shapefile |
+| OpenFileGDB    |.gdb  | file geodatabase|
+| GeoJSON    | .json   | json |
+| SQLite | .db, .sqlite  |sqlite database|
 
 
 ### osgeo library  
 
 From OSGeo4W Shell:  
+
+.shp -> .gpkg: 
 > ogr2ogr -f "ESRI Shapefile" "C:\Users\Lauren\EO_ML\USCensus\SB_census_soil.shp" "C:\Users\Lauren
 \EO_ML\USCensus\SB_census.gpkg" "soil"
 
+PostgreSQL database -> .gpkg:
+> ogr2ogr -f PostgreSQL "PG:user=y{ouruser} password={yourpassword} dbname=yourdbname" {yourgeopackage.gpkg}
+
+.gpx -> .gpkg:
 > for /R %f in (*.gpx) do ogr2ogr -f "GPKG" my_geopackage.gpkg "%f"
+
 
 
 ## LINUX 
@@ -224,3 +239,11 @@ https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html
 ~~~
 mamba install {package}  
 ~~~
+
+## resources
+
+Projection finder: www.projectionwizard.com   
+GeoJSON creator: https://geojson.io/   
+Time Series in Python: https://wesmckinney.com/book/time-series  
+QGIS, GEE, Python courses: https://courses.spatialthoughts.com   
+big query tutorial: https://www.cloudskillsboost.google/focuses/609?parent=catalog 
