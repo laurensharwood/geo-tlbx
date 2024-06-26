@@ -407,22 +407,25 @@ def get_census_var_gdf(hierarch_region, county_name, state_abr):
 ## OPENSTREETMAP 
 #########################s#######
 
-def osm_drinking_fountains(bbox):
+def osm_poi(bbox, amenity):
     api = overpy.Overpass()
     # fetch all ways and nodes
-    result = api.query("""node(%f,%f,%f,%f) ["amenity"="drinking_water"]; (._;>;); out body; """ % bbox)
+    result = api.query("""node(%f,%f,%f,%f)""" % bbox + "['amenity'='"+amenity+"']; (._;>;); out body; ")
     pois=[]
     for pt in result.nodes:
         pois.append((pt.lat, pt.lon))
-    drinking = pd.DataFrame([pois]).T
-    drinking.columns=["drinking_water"]
-    return drinking 
+    df = pd.DataFrame([pois]).T
+    df.columns=[amenity]
+    print(list(range(0,len(df),1)))
+    gdf = gpd.GeoDataFrame(pd.DataFrame(list(range(0,len(df),1))), geometry=gpd.points_from_xy([float(i[1]) for i in df[amenity]], [float(i[0]) for i in df[amenity]], crs=4326))
+    gdf.columns = ['index', 'geometry']
+    return gdf 
 
-def osm_highways(bbox):
+
+def osm_roads(bbox):
     api = overpy.Overpass()
     # fetch all ways and nodes
-    result = api.query("""way(%f,%f,%f,%f) ["highway"]; (._;>;); out body; """ % bbox)
-    ## result = api.query("""way(%f,%f,%f,%f) ["highway"="footway"]["highway"="path"]; (._;>;); out body; """ % bbox)
+    result = api.query("""way(%f,%f,%f,%f)["highway"]; (._;>;); out body; """ % bbox)
     names=[]
     roadtypes=[]
     roads_nodes=[]
@@ -431,8 +434,8 @@ def osm_highways(bbox):
         roadtypes.append(way.tags.get("highway", "n/a"))
         nodes=[]
         for node in way.nodes:
-            nodes.append((node.lat, node.lon))
-        roads_nodes.append(nodes)
-    roads_df = pd.DataFrame([names, roadtypes, roads_nodes]).T
-    roads_df.columns = ["name", "type", "coords"]
-    return roads_df
+            nodes.append(Point(node.lon, node.lat))
+        roads_nodes.append(LineString(nodes))
+    roads_gdf = gpd.GeoDataFrame(pd.DataFrame([names, roadtypes]).T, geometry=roads_nodes)
+    roads_gdf.columns = ["name", "type", "geometry"]
+    return roads_gdf
