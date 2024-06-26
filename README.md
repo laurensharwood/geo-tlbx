@@ -68,7 +68,7 @@ DROP DATABASE db_name;
 ALTER TABLE table_name DROP COLUMN column_name;
 
 
-### join
+#### join
 
 <b>inner join</b>  
 links two tables, 'tablname' and lookuptable, 'lut', using a common 'key' column, and returns rows where 'key' value exists in both tables  
@@ -87,7 +87,7 @@ returns all rows from both tables
 > SELECT * FROM tablname FULL OUTER JOIN lut ON tablname.key = lut.key 
 
 
-### aggregate 
+#### aggregate 
 
 <b>sum minutes column from 'runs_tcx' table</b>   
 > SELECT SUM(minutes) FROM runs_tcx  
