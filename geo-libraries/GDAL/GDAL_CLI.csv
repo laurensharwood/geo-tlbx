@@ -1,0 +1,53 @@
+GDAL COMMANDS,,
+,,
+Vector,,
+subset shp,"ogr2ogr -where ""column= value"" output.shp input.shp",
+,,
+create spatial index,"ogrinfo vector.shp -sql ""CREATE SPATIAL INDEX ON vector""",
+,,
+merge/dissolve by attribute,"ogr2ogr -f ""ESRI Shapefile"" dissolved.shp input.shp -dialect sqlite -sql ""select ST_union(Geometry),common_attribute from input GROUP BY common_attribute""",
+,,
+Translate / Transform,"ogr2ogr -f ""GeoJSON"" output.json input.shp",
+,input name,input.shp
+,output name,output.json
+,output driver,"""GeoJSON"""
+,,
+KMZ to CSV,ogr2ogr -f CSV output.csv input.kmz -lco GEOMETRY=AS_XY,
+,input KMZ,input.kmz
+,output CSV,output.csv
+,,
+,,
+Raster,,
+Resample / Resize ,gdal_translate -of GTiff -r bilinear input_file.tif output_file.tif,
+,input file,input_file.tif
+,output file,output_file.tif
+,,
+Reproject ,gdalwarp  -of GTiff  -r bilinear -s_srs EPSG:8858 -t_srs EPSG:3857 input_rast.tif reprojected_rast.tif,
+,input EPSG,8858
+,input file,input_rast.tif
+,output EPSG,3857
+,output file,reprojected_rast.tif
+,,
+,,
+DEM,,
+DEM Contour,"gdal_contour -a elev input_DEM.tif output_contour.gpkg -i 100 -f ""GPKG""",
+,input DEM,input_DEM.tif
+,distance,100
+,output vector file,output_contour.gpkg
+,output driver,"""GPKG"""
+,,
+DEM Hillshade,gdaldem hillshade -of GeoTiff -az 215 input_file.tif  output_file.tif,
+,input file,input_file.tif 
+,azimuth,215
+,output file,output_file.tif
+,output format,GeoTiff
+,,
+,gdal_sieve [-q] [-st threshold] [-4] [-8] [-o name=value] <srcfile> [-nomask] [-mask filename] [-of format] [<dstfile>],
+,,
+,gdaldem slope <input_dem> <output_slope_map> [-p] [-s <scale>],
+,,
+,gdaldem aspect <input_dem> <output_aspect_map> [-trigonometric] [-zero_for_flat],
+,,
+,gdaldem TRI input_dem output_TRI_map,
+,,
+,gdaldem TPI <input_dem> <output_TPI_map>,
