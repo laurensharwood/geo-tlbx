@@ -1,5 +1,7 @@
 # Geographic Data
 
+
+
 ---
 
 ## Coordinate Reference System (CRS)
@@ -9,7 +11,7 @@
 3. <b>Geographic CRS (3D):</b> Latitude, Longitude for referencing location on Earth's curved/ellipsoid surface
 4. <b>Projected CRS (2D):</b> Earth's curved surface *projected* onto a 2D surface. Distortion occurs during projection, but 
 the <b>goal is to choose a *projection method* that limits your project area's Easting & Northing distances from the Datum in order to minimize this distortion</b>.   
-   - Due to its long shape (elongated North to South), California is divided into 5 State Plane (CASP) Zones. For each CASP Zone, a *conformal conic projection* is optimal do to the East-West elongation and mid-latitude location. 
+   - Due to its long shape (elongated North to South), California is divided into 6 State Plane (CASP) Zones. For each CASP Zone, a *Lambert conformal conic projection* is optimal do to the East-West elongation and mid-latitude location. 
 
 <b>[Projection Wizard](https://projectionwizard.org):</b>  Tool to find appropriate projection based on your project area
 
@@ -32,6 +34,8 @@ Vectors represent objects as features (point, line, or polygon shape) with tabul
   * Database (SQLite, MS Access, PostgreSQL, ESRI file geodatabase)
   * [GeoJSON](https://courses.spatialthoughts.com/python-foundation.html#understanding-json-and-geojson) ([GeoJSON creator](https://geojson.io))
   * KML/KMZ (for Google Earth Pro)
+  * [Geoparquet](https://geoparquet.org/)
+
 
 <b>Networks:</b>   
 * Set of connected objects in geographic space to answer questions about connections and flow.   
@@ -51,10 +55,12 @@ Rasters are grids with pixels with values that represent continuous fields (elev
 - Coarse resolution = large pixel size
 
 <b>Light Detection and Ranging (lidar):</b> used to create elevation model rasters    
+rapidlasso https://rapidlasso.de/
 Lidar file formats:  
   * ASCII: raw lidar data   
-  * [LAS](https://lastools.github.io/): point clouds with XYZ (East-North-Elevation) values    
+  * [LAS](https://lastools.github.io/): point clouds with XYZ values    
   * LAZ (zipped LAS)   
+https://lastools.github.io/
 
 <b>[Computer Automated Design](https://pro.arcgis.com/en/pro-app/latest/help/data/cad/what-is-cad-data.htm) (CAD):</b> 
   * From CAD software (AutoCAD, Microstation)

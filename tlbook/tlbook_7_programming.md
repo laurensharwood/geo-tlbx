@@ -208,7 +208,7 @@ ex) every day at 10:00am run get_garmin.sh & don't send that email  (```*``` == 
   
 <u>to save</u>: ctrl+X (to escape editing session, then) Y (yes), enter     
 
-4. <b>print active tasks</b> to ensure it was created: ```crontab -l```  
+4. <b>print active tasks</A data lake is a centralized repository designed to store, process, and secure large amounts of structured, semistructured, and unstructured data.b> to ensure it was created: ```crontab -l```  
 
 ---
 
@@ -216,28 +216,31 @@ ex) every day at 10:00am run get_garmin.sh & don't send that email  (```*``` == 
 
 #### Git
 
+![github](img/git.png)
+
+
 Store your GitHub login credentials:   
 ~~~
 git	
-git config --global user.name {your_github_username}
-git config --global user.email {your_github_email}
+git config --global user.name *your-github-username*
+git config --global user.email *your-github-email*
 git config --global --list	
 ~~~
 
 Initialize a folder as GitHub repository:   
 ~~~
-cd {your_repo}
+cd your_repo
 git init
 git add .
 git commit -m "message"
-git remote add origin https://github.com/{your_username/your_repo}.git
+git remote add origin https://github.com/your_username/your_repo.git
 
 ~~~
 
 Push updates to Github repository:    
 ~~~
 git push -u origin main
-cd {your_repository_directory}
+cd your_repo
 git add .
 ## git status
 git commit -m "message"

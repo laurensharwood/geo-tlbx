@@ -2,19 +2,19 @@
 
 ---
 
-![Apps](app_icons.png)
+![Apps](img/app_icons.png)
 
 
 Mapping:   
 - [ ] [QGIS](https://qgis.org/en/site/forusers/download.html) (+ OSGeo4W/gdal, PostGIS/postgreSQL)
 - [ ] [Google Earth Pro](https://support.google.com/earth/answer/21955?hl=en)
+- [ ] [Geoserver](https://geoserver.org/download/) (requires [JDK](https://adoptium.net/) )
 
 Relational Database Management System (RDBMS): *NOTE [different SQL syntax](https://www.datacamp.com/blog/sql-server-postgresql-mysql-whats-the-difference-where-do-i-start?utm_source=google&utm_medium=paid_search&utm_campaignid=19589720830&utm_adgroupid=152984016694&utm_device=c&utm_keyword=&utm_matchtype=&utm_network=g&utm_adpostion=&utm_creative=684592141394&utm_targetid=dsa-2222697809758&utm_loc_interest_ms=&utm_loc_physical_ms=9031757&utm_content=DSA~blog~SQL&utm_campaign=230119_1-sea~dsa~tofu_2-b2c_3-us_4-prc_5-na_6-na_7-le_8-pdsh-go_9-nb-e_10-na_11-na&gad_source=1&gclid=Cj0KCQjws560BhCuARIsAHMqE0FYrjbIuukzGe7GNZ6eeFyRIdojfvbJMp5LreGIjlWsex3WJJ9k5aMaAvSLEALw_wcB)*    
 - [ ] [postgreSQL](https://www.postgresql.org/download/) (w/ postGIS plugin to connect to QGIS)  
 - [ ] [MySQL](https://dev.mysql.com/downloads/mysql/) *NOTE: Select your OS*
 - [ ] [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- [X] SQLite (sqlite3 pre-installed with Python)  
-
+- [X] SQLite (sqlite3 pre-installed with Python)
 
 Scripting:
 - [ ] [Python](https://www.python.org/downloads/) 
@@ -63,7 +63,7 @@ ii) in the last row of the file enter your app's install location, ex: /Library/
 ## QGIS 
 
 ### Add basemaps:  
-1) In the <b>Browser</b> pane: under <b>XYZ Tiles</b>, right-click and select <b>New Connection</b> ![newconnection](basemap1.png)
+1) In the <b>Browser</b> pane: under <b>XYZ Tiles</b>, right-click and select <b>New Connection</b> ![newconnection](img/basemap1.png)
 2) Enter the Name and URL from a row in the table below into the <b>XYZ Connection</b> popup window. 
 
 
@@ -79,6 +79,8 @@ ii) in the last row of the file enter your app's install location, ex: /Library/
 
 ### Add open-source tool plugins:
 <b>Plugins</b> dropdown > <b>Manage and Install Plugins</b> > search for your plugin     
+
+
 
 ---
 

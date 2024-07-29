@@ -1,43 +1,44 @@
 # Databases
 
+---
 
 
 
 ## DBMS (Database Management System)  
 
+<b>Database Design Considerations</b>:    
+- *Specific use-case: what is the need?*  
+- *What data needs to be stored, & what type of data is it?*
+- *How often is will the data be updated and viewed; and by who?*
+- *What is the level of security the data requires?* 
+- *How should the data be logically organized and what integrity constraints should be applied?* 
+
 <b>NoSQL (nonrelational DBMS)</b>:   
-Document-centered rather than table-centred. large data, structure varies.  
+Document-centered rather than table-centred. large data, structure varies. Stored in a [data lake](https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/what-is-a-data-lake#data-lake-definition). 
 - Unstructured data: No schema. Most data. Ex) Photos, chat lots, MP3     
 - Semi-structured data: Self-describing sctructure but no larger schema. Ex) NoSQL, XML, JSON  
 
 <b>SQL (relational DBMS)</b>:   
-Structured, consistent data that follows a schema with defined data types and relationships / constraints.  
+- Structured data: Follows a schema with defined constraints and relationships. Stored in a data warehouse or data lake. Ex) Database or Excel table. 
 
+<b>Cardinality</b>:   
+Relationship between tables, rows, and elements in a database. Ratio denotes the number of entities that another entity can be linked to.   
+- 1:1 - one row in a table relates to exactly one row in a second table
+- 1:N - one row in a database table relates to many rows in a second table (Primary Key-Foreign Key relationship) 
+- N:N - many rows in one table are related to many rows in a second table  
 
-
-
-<b>Database Design Considerations</b>:    
-- *Specific use-case*  
-- *What is being analyzed?*   
-- *How often is will data be updated and change?*   
-
-<b>Entity-Relationship Diagrams (ERDs) </b>:  
+<b>Entity-Relationship Diagrams (ERDs)</b>:  
 Charts that depict the entities (objects), relationships, and attributes in a database. 
 - https://draw.io 
 - https://databasediagram.com/
 
-### Schemas  
-*Consider: How should the data be logically organized and what integrity constraints should be applied?* 
-
-Cardinality: Relationship between tables, rows, and elements in a database. Ratio denotes the number of entities that another entity can be linked to   
-- 1:1
-- 1 to many  
-- many to 1
-- many to many
+<u>Crows Notation Chart</u>:
+![notation](img/Crow-Notation-Chart.png)
 
 
-### Normalization   
-Normalization refers to the process of breaking down tables in a database & managing the relationships between them in order to minimize redundancy.    
+
+<b>Normalization</b>:   
+The process of breaking down tables in a database & managing the relationships between them in order to minimize redundancy.    
 
 *Consider: Should my data have minimal redundancies and dependencies?*    
 
@@ -53,57 +54,71 @@ Normal form levels assess danger of redundancy:
 
 
 ### Data Integrity
-Data integrity refers to the total accuracy, consistency, and completeness of data.
+Refers to the total accuracy, consistency, and completeness of data.
 
-<b>Physical</b>: integrity of the body. Issues may arise from degraded storage, blackouts, hacker attacks 
+<b>Physical</b>: integrity of the body. Ex) issues from degraded storage, blackouts, hacker attacks   
+<b>Logical</b>: integrity across uses. Ex) creating unique primary keys without null values  
 
-<b>Logical</b>: integrity across uses.   
-Ex) creating unique primary keys without null values. 
+<b>ACID</b>: ensures reliability of database transactions   
+<b>A</b>tomicity: Transactions are all-or-nothing   
+<b>C</b>onsistency: Updates must adhere to data constraints    
+<b>I</b>solation: Multiple users can access data at the same time        
+<b>D</b>urability: Committed transactions are saved to permanent storage     
 
+<b>Constraints</b>  
+```CONSTRAINT``` types:   
+1. Domain: acceptable data type per column 
+2. Entity integrity: unique primary key values within a table cannot be null
+3. Referential (foreign key) integrity: uses foreign key to ensure consistent relationship between tables
 
-#### Ensuring Data Integrity 
-<b>Constraints</b>: ```CONSTRAINT```
-- Domain: acceptable data type per column 
-- Entity: unique primary key values within a table 
-- Referential / foreign key: consistent relationship between tables
-     Ex) Only add foreign key if that is a unique ID and it also exists in another database 
-
-```CHECK``` constraint ensures that values in a column or a group of columns meet a specific condition
-
+Examples:   
+* ```NOT NULL``` - ensures no NULL values for a given column  
+* ```UNIQUE``` - ensures all values for a given column are different  
+* ```PRIMARY KEY``` - combines ```NOT NULL``` and ```UNIQUE```  
+* ```FOREIGN KEY``` - prevents actions that would destroy links/relationships between tables  
+* ```DEFAULT``` - inserts specified default value if none is provided     
 ~~~
-ALTER TABLE table_name
-ADD CONSTRAINT constraint_name CHECK (condition);
+CREATE TABLE table_name 
+(employee int PRIMARY KEY, 
+salary decimal(10, 2) DEFAULT 50000.00);
 ~~~
 
+* ```CHECK``` - ensures that values in a column or a group of columns meet a specific condition
+~~~
+ALTER TABLE table_name 
+ADD CONSTRAINT constraint_name 
+CHECK (condition);
+~~~
 
-<b>Triggers</b> are executed when a database event occurs, such as inserting or editing an entry. 
-
-```CREATE TRIGGER``` to tracking edit history / data changes in [Postgres](https://www.postgresql.org/docs/current/plpgsql-trigger.html) / [PostGIS](https://postgis.net/workshops/postgis-intro/history_tracking.html)   
-
+* ```CREATE TRIGGER```  - executed when a database event occurs and are used to track edit history & data changes ( [Postgres](https://www.postgresql.org/docs/current/plpgsql-trigger.html) / [PostGIS](https://postgis.net/workshops/postgis-intro/history_tracking.html)  ) 
 
 
 ### Indexes
 Similar to indexes in books, indexes in tables improve lookup performance, but by building a tree diagram using a unique ID key 
-Clusterd Index: index sorted by a column 
 
-mySQL:
+<b>Clustered Index</b>: index sorted by a column 
+
+*Note different syntax to create clustered index in mySQL vs postgreSQL*: 
+
+* mySQL:
 ~~~
 CREATE CLUSTERED INDEX index_name ON db.table_name (column_name);
 ~~~
-postgreSQL:
+* postgreSQL:
 
 ~~~
 CLUSTER table_name USING column_name;
 ~~~
 
-*Note different syntax to create clustered index in mySQL vs postgreSQL*   
 
 
 ### Views  
-A view refers to a query stored in a data dictionary. Acts as a proxy, or virtual table, so does not hold the actual data.  
-Used to (1) break down more complex operations, and (2) restrict users accessing certain sensitive data.  
+A query stored in a data dictionary, which acts as a proxy (virtual table) and does not hold the actual data.  
+
+```CREATE VIEW``` /  ```DROP VIEW```  used to (1) break down more complex operations, and (2) restrict users accessing certain sensitive data.  
+
 *Consider: What queries will be performed most often?*   
-```CREATE VIEW```  ```DROP VIEW```  
+
 View Types:   
 - Simple - based on a single table w/ no ```GROUP BY``` clause and functions     
 - Complex - based on multiple tables which contain ```GROUP BY``` clause and functions   
@@ -113,6 +128,7 @@ View Types:
 
 ### Access control   
 *Consider: which users should have access to which levels of access(read/update/insert) & tables?*   
+
 [PostGIS](https://postgis.net/workshops/postgis-intro/security.html)
 
 ```  
@@ -145,11 +161,8 @@ i) Find in install location once then pin to start/taskbar: Entering nothing sub
 Server [localhost], Database [db_name], Port[5432], Username[postgres], Password for user
 
 #### From psql, create postgreSQL database
-Execute the following command to create a database: ```createdb -h localhost -p 5432 -U postgres {db_name}``` then enter user password when prompted
-
-<b>create table</b>  
-launch psql db(db_name=#):  
-> CREATE TABLE gpx_runs (gpx_file TEXT NOT NULL, time VARCHAR(100) NOT NULL, lat FLOAT NOT NULL, lon FLOAT NOT NULL, ele FLOAT NOT NULL, speed FLOAT NOT NULL);
+Execute the following command to create a database, then enter user password when prompted:   
+> createdb -h localhost -p 5432 -U postgres {db_name}  
 
 print databases in postgres db server:  
 > \l   
@@ -157,6 +170,14 @@ print databases in postgres db server:
 print tables in connected db:  
 > \d 
 
+<b>create table</b> (in a connected database)
+> CREATE TABLE table_name (id_key INTEGER PRIMARY KEY, fullname varchar(100) NOT NULL);
+    
+<b>delete database</b> (must be disconnected from the database you're trying to delete)  
+> DROP DATABASE {db};
+
+<b>delete column</b>  
+> ALTER TABLE table_name DROP COLUMN column_name;
 
 ---
 
@@ -193,29 +214,14 @@ From OSGeo4W Shell:
 > ogr2ogr -f "ESRI Shapefile" "input.shp" "output.gpkg" "layer"
 
 PostgreSQL database -> .gpkg:
-> ogr2ogr -f PostgreSQL "PG:user={your_username} password={your_pwd} dbname=your_dbname" {out_filename}.gpkg
+> ogr2ogr -f PostgreSQL "PG:user=your_username password=your_pwd dbname=your_dbname" out_filename.gpkg
 
 .gpx -> .gpkg:
-> for /R %f in (*.gpx) do ogr2ogr -f "GPKG" {out_filename}.gpkg "%f"
+> for /R %f in (*.gpx) do ogr2ogr -f "GPKG" out_filename.gpkg "%f"
 
 
 ---
 
-## postgreSQL actions  
-<b>create table</b> (in a connected database)
-~~~
-CREATE TABLE table_name (id_key INTEGER PRIMARY KEY, fullname varchar(100) NOT NULL);
-~~~
-    
-<b>delete database</b> (must be disconnected from the database you're trying to delete)  
-~~~
-DROP DATABASE {db};
-~~~
-
-<b>delete column</b>  
-~~~
-ALTER TABLE table_name DROP COLUMN column_name;
-~~~
 
 ### Common clauses 
 - ```SELECT``` is the clause we use every time we want to query information from a database.
