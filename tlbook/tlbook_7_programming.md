@@ -208,7 +208,7 @@ ex) every day at 10:00am run get_garmin.sh & don't send that email  (```*``` == 
   
 <u>to save</u>: ctrl+X (to escape editing session, then) Y (yes), enter     
 
-4. <b>print active tasks</A data lake is a centralized repository designed to store, process, and secure large amounts of structured, semistructured, and unstructured data.b> to ensure it was created: ```crontab -l```  
+4. <b>print active tasks</b> to ensure it was created: ```crontab -l```  
 
 ---
 
