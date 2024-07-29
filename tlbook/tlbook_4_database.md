@@ -181,48 +181,6 @@ print tables in connected db:
 
 ---
 
-
-## Transformation
-Refers to transfering / converting geospatial data between Python objects, ESRI [geodatabases](https://pro.arcgis.com/en/pro-app/latest/help/data/geodatabases/overview/the-architecture-of-a-geodatabase.htm#GUID-739D940C-FD50-4F6F-8600-EBE39B00189A
-), and other RDBMS such as [SQL Server](https://pro.arcgis.com/en/pro-app/latest/help/data/geodatabases/manage-sql-server/overview-geodatabases-sqlserver.htm). 
-
-
-
-### postgres  -> python (geopandas):  
-<b>cursors</b> are database objects that work with tables (for instance: reading or writing) one row at a time
-~~~
-import pandas as pd
-import psycopg2
-
-conn = psycopg2.connect(database = {your_db_name}, user = os.getenv("POSTUSR"), password = os.getenv("POSTPWD"), host = localhost, port = 5432)
-cur = conn.cursor()
-cur.execute({SQL_query})
-items = cur.fetchall()
-hits=[]
-for i in items:
-    hits.append(i)
-df=pd.DataFrame(hits)
-~~~
-
-
-
-### OSGEO ```ogr2ogr```:
-
-From OSGeo4W Shell:  
-
-.shp -> .gpkg: 
-> ogr2ogr -f "ESRI Shapefile" "input.shp" "output.gpkg" "layer"
-
-PostgreSQL database -> .gpkg:
-> ogr2ogr -f PostgreSQL "PG:user=your_username password=your_pwd dbname=your_dbname" out_filename.gpkg
-
-.gpx -> .gpkg:
-> for /R %f in (*.gpx) do ogr2ogr -f "GPKG" out_filename.gpkg "%f"
-
-
----
-
-
 ### Common clauses 
 - ```SELECT``` is the clause we use every time we want to query information from a database.
 - ```AS``` renames a column or table.
@@ -248,8 +206,6 @@ SELECT SUM(minutes) FROM runs_tcx
 Aggregate functions combine multiple rows together to form a single value of more meaningful information.
 - ```GROUP BY``` is a clause used with aggregate functions to combine data from one or more columns.
 - ```HAVING``` limit the results of a query based on an aggregate property.
-
-
 
 ### Data manipulation
 
@@ -315,3 +271,45 @@ returns all rows from both tables
 ~~~
 SELECT * FROM table_name FULL OUTER JOIN lut ON table_name.key = lut.key 
 ~~~
+
+
+---
+
+## Transformation
+Refers to transfering / converting geospatial data between Python objects, ESRI [geodatabases](https://pro.arcgis.com/en/pro-app/latest/help/data/geodatabases/overview/the-architecture-of-a-geodatabase.htm#GUID-739D940C-FD50-4F6F-8600-EBE39B00189A
+), and other RDBMS such as [SQL Server](https://pro.arcgis.com/en/pro-app/latest/help/data/geodatabases/manage-sql-server/overview-geodatabases-sqlserver.htm). 
+
+
+### postgres  -> python (geopandas):  
+<b>cursors</b> are database objects that work with tables (for instance: reading or writing) one row at a time
+~~~
+import pandas as pd
+import psycopg2
+
+conn = psycopg2.connect(database = {your_db_name}, user = os.getenv("POSTUSR"), password = os.getenv("POSTPWD"), host = localhost, port = 5432)
+cur = conn.cursor()
+cur.execute({SQL_query})
+items = cur.fetchall()
+hits=[]
+for i in items:
+    hits.append(i)
+df=pd.DataFrame(hits)
+~~~
+
+
+
+### OSGEO ```ogr2ogr```:
+
+From OSGeo4W Shell:  
+
+.shp -> .gpkg: 
+> ogr2ogr -f "ESRI Shapefile" "input.shp" "output.gpkg" "layer"
+
+PostgreSQL database -> .gpkg:
+> ogr2ogr -f PostgreSQL "PG:user=your_username password=your_pwd dbname=your_dbname" out_filename.gpkg
+
+.gpx -> .gpkg:
+> for /R %f in (*.gpx) do ogr2ogr -f "GPKG" out_filename.gpkg "%f"
+
+
+---
