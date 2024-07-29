@@ -2,6 +2,8 @@
 
 general_utils.py
 
+db_utils.py
+
 raster_utils.py  
 
 vector_utils.py  
@@ -12,13 +14,18 @@ plot_utils.py
 
 gee_utils.py  
 
-census_working.ipynb  
+muni_working.ipynb  
 
 PlanetSAM_working.ipynb
 
 tlbook/  
-
-running/  
+1. Intro
+2. Apps
+3. Data
+5. Databases
+4. Analysis
+6. Programming
+7. Linux
 
 time-series/  
 
