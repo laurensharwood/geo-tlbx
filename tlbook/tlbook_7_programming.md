@@ -227,7 +227,7 @@ git config --global user.email *your-github-email*
 git config --global --list	
 ~~~
 
-Initialize a folder as GitHub repository:   
+Initialize local folder as remote repository:   
 ~~~
 cd your_repo
 git init
@@ -237,7 +237,7 @@ git remote add origin https://github.com/your_username/your_repo.git
 
 ~~~
 
-Push updates to Github repository:    
+Push updates to remote repository:    
 ~~~
 git push -u origin main
 cd your_repo
