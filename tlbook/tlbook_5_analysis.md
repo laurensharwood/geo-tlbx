@@ -10,19 +10,14 @@
 - Moran's I - measure of spatial autocorrelation 
 
 ## Topological Relations
-- contains
-- inside/within
-- covers
-- covered by
-- boundaries touching
-- overlap with / boundaries intersecting
+- disjoint  / intersects 
+- is equal to
+- contains / within 
+- overlap with 
+![toporelations](img/toporelations.png)
 
-## Set Operations 
-- union
-- intersection
-- difference
-- symmetric difference
-
+## Set Operations
+![setoperations](img/setoperations.png)
 ## Point Pattern Analysis
 - Avg Nearest Neighbor   
 - Convex hull/envelope from common points    
@@ -43,6 +38,9 @@ Estimate a value at a location based on surrounding locations (time or space)
 - Threshold/mask
 
 ## Focal / Neighborhood statistics
+Require user-input kernel size/radius/distance for the moving window calculation   
+- Low-pass filter - smooths surface
+- High-pass filter - edge-enhancement / sharpening 
 - Spatial Lags
 
 ## Extrapolation
