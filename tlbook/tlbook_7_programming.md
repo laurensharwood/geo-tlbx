@@ -11,25 +11,38 @@ General:
 - ```tqdm```- progress bars   
 - ```dask``` -  for parallel computing / reading arrays / tables larger than memory  
 
-Database <-> Python (geopandas):  
+Database Translation:  
 - ```sqlalchemy``` - ORM: generates SQL statements
 - ```psycopg2-binary``` - driver: sends SQL statements to postgreSQL database
+- ```sqlglot``` -  SQL parser, transpiler, optimizer, & engine  DuckDB, Spark / Databricks, Snowflake, BigQuery
+
 
 Vector:
 - ```pyproj``` - projection information 
 - ```shapely``` - vector geometry 
 - ```geopandas``` - pandas table + shapely geometry + pyproj projection
 
-
 Read in spatial subset of file_name that's within region_gdf bounds to improve file reading speed: 
 ~~~
 gdf = gpd.read_file(file_name, bbox = tuple(region_gdf.total_bounds))
 ~~~
 
+<u>Geopandas drivers</u>:  
+
+| Driver | Extension    | Name             | 
+| ----- |--------------|------------------|
+| GPKG  | .gpkg        | geopackage       |
+| ESRI Shapefile | .shp         | shapefile        |
+| OpenFileGDB    | .gdb         | file geodatabase |
+| GeoJSON    | .geojson     | geojson          |
+| SQLite | .db, .sqlite | sqlite database  |
+
 Append gdf as a layer to an existing file, file_name, if the file is a .gdb, .gpkg, or .geojoson: 
 ~~~
-gdf.to_file(file_name, mode="a")
+gdf.to_file("out_gdb.gdb", layer="in_file", driver="OpenFileGDB", mode="a")
 ~~~
+
+
 
 Create a [STRtree](https://shapely.readthedocs.io/en/stable/strtree.html#) <b>spatial index</b> to improve query / set operation speed: 
 ~~~
@@ -213,15 +226,17 @@ git config --global --list
 
 Initialize a folder as GitHub repository:   
 ~~~
-cd {your_repository_directory}
+cd {your_repo}
 git init
 git add .
 git commit -m "message"
-git remote add {your_repository_directory} main
+git remote add origin https://github.com/{your_username/your_repo}.git
+
 ~~~
 
-Push updates to a remote repository:    
+Push updates to Github repository:    
 ~~~
+git push -u origin main
 cd {your_repository_directory}
 git add .
 ## git status

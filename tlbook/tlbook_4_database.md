@@ -1,5 +1,8 @@
 # Databases
 
+
+
+
 ## DBMS (Database Management System)  
 
 <b>NoSQL (nonrelational DBMS)</b>:   
@@ -9,6 +12,9 @@ Document-centered rather than table-centred. large data, structure varies.
 
 <b>SQL (relational DBMS)</b>:   
 Structured, consistent data that follows a schema with defined data types and relationships / constraints.  
+
+
+
 
 <b>Database Design Considerations</b>:    
 - *Specific use-case*  
@@ -122,18 +128,24 @@ SQL Server:
 
 ## postgreSQL (psql)   
 
-Store postgreSQL credentials:    
+
+#### Store postgreSQL credentials in Linux:    
 ```
 export POSTUSR={your-postgres-username}
 export POSTPWD={your-postgres-pwd}
 ```  
+If postgreSQL was added to PATH, open a terminal.   
+If not, go to the directory where PostgreSQL is installed then into the bin directory, then open a terminal.  
 
-to not enter password:   
-open "C:\Program Files\PostgreSQL\16\data\pg_hba.conf" with notepad: change method from sca-... to trust     
+#### Trust (ignore password step) in Windows:   
+Right-click "C:\Program Files\PostgreSQL\16\data\pg_hba.conf" > edit with Notepad: change method from sca-... to trust     
 
-<b>create database</b>  
-launch terminal:  
-> createdb -h localhost -p 5432 -U postgres -T template_postgis db_name;  
+#### Connect to database from psql
+i) Find in install location once then pin to start/taskbar: Entering nothing submits text within brackets--   
+Server [localhost], Database [db_name], Port[5432], Username[postgres], Password for user
+
+#### From psql, create postgreSQL database
+Execute the following command to create a database: ```createdb -h localhost -p 5432 -U postgres {db_name}``` then enter user password when prompted
 
 <b>create table</b>  
 launch psql db(db_name=#):  
@@ -143,13 +155,8 @@ print databases in postgres db server:
 > \l   
 
 print tables in connected db:  
-> \t 
+> \d 
 
-#### From Terminal, create postgreSQL database
-If postgreSQL was added to PATH, open a terminal. otherwise, go to the directory where PostgreSQL is installed then into the bin directory, then open a terminal.  
-Execute the following command to create a database: ```createdb -h localhost -p 5432 -U postgres {db_name}``` then enter user password when prompted
-#### Connect to database from psql
-i) Find in install location once then pin to start/taskbar: Entering nothing submits text within brackets-- Server [localhost], Database [db_name], Port[5432], Username[postgres], Password for user
 
 ---
 
@@ -177,31 +184,13 @@ df=pd.DataFrame(hits)
 ~~~
 
 
-<u>Geopandas drivers</u>:  
-
-| Driver | Extension    | Name             | 
-| ----- |--------------|------------------|
-| GPKG  | .gpkg        | geopackage       |
-| ESRI Shapefile | .shp         | shapefile        |
-| OpenFileGDB    | .gdb         | file geodatabase |
-| GeoJSON    | .geojson     | geojson          |
-| SQLite | .db, .sqlite | sqlite database  |
-
-~~~
-import geopandas as gpd
-gdf = gpd.read_file("in_file.json")
-gdf.to_file("out_gdb.gdb", layer="in_file", driver="OpenFileGDB")   
-~~~
-* SOME drivers support layer={layer_name}, or mode="a" to append
-
 
 ### OSGEO ```ogr2ogr```:
 
 From OSGeo4W Shell:  
 
 .shp -> .gpkg: 
-> ogr2ogr -f "ESRI Shapefile" "C:\Users\Lauren\EO_ML\USCensus\SB_census_soil.shp" "C:\Users\Lauren
-> \EO_ML\USCensus\SB_census.gpkg" "soil"
+> ogr2ogr -f "ESRI Shapefile" "input.shp" "output.gpkg" "layer"
 
 PostgreSQL database -> .gpkg:
 > ogr2ogr -f PostgreSQL "PG:user={your_username} password={your_pwd} dbname=your_dbname" {out_filename}.gpkg
