@@ -101,8 +101,11 @@ def unnest(gdf):
     return gdf.explode(index_parts=True)
 
 def pts_to_lines(pts_df, group_col, x_col="lon", y_col="lat", crs=4326):
-    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df[x_col], pts_df[y_col])], crs=crs)
-    lines = gdf.groupby([group_col])['geometry'].apply(lambda x: LineString(x.tolist()))
+    df = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df[x_col], pts_df[y_col])], crs=crs)
+    # Count occurrences of each filename
+    filename_counts = df['filename'].value_counts()
+    # Filter out rows where the filename occurs only once
+    filtered_df = df[df['filename'].isin(filename_counts[filename_counts > 1].index)]
     lines_gdf = gpd.GeoDataFrame(lines, geometry='geometry', crs=crs)
     return lines_gdf
 
