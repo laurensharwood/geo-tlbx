@@ -101,7 +101,7 @@ def unnest(gdf):
     return gdf.explode(index_parts=True)
 
 def pts_to_lines(pts_df, group_col, x_col="lon", y_col="lat", crs=4326):
-    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df.x_col, pts_df.y_col)], crs=crs)
+    gdf = gpd.GeoDataFrame(pts_df, geometry=[Point(xy) for xy in zip(pts_df[x_col], pts_df[y_col])], crs=crs)
     lines = gdf.groupby([group_col])['geometry'].apply(lambda x: LineString(x.tolist()))
     lines_gdf = gpd.GeoDataFrame(lines, geometry='geometry', crs=crs)
     return lines_gdf
