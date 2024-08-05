@@ -106,21 +106,45 @@ def postgres_to_df(SQL_query, db, user="postgres", pwd="", host="localhost", por
             conn.close()
             print("PostgreSQL connection is closed")
 
-def gpx_to_postgres(data_dir, table_name, db="garmin_activities"):
+def split_gpx_at(fi, split_min):
+    gpx_file = open(fi, 'r')
+    gpx = gpxpy.parse(gpx_file, version='1.1')
+    trackpoints = []
+    trackpoints2 = []
+    for track in gpx.tracks:
+        for seg in track.segments:
+            for point_no, pt in enumerate(seg.points):
+                first_part = True
+                if point_no == 0:
+                    trackpoints.append([pt.time, fi, pt.latitude, pt.longitude, pt.elevation])
+                elif point_no > 0:
+                    secs_btwn = pt.time - seg.points[point_no - 1].time
+                    minutes = secs_btwn.total_seconds() / 60
+                    if minutes < split_min:
+                        trackpoints.append([pt.time, fi, pt.latitude, pt.longitude, pt.elevation])
+                    elif (minutes > split_min or first_part == False):
+                        trackpoints2.append([pt.time, fi.replace(".gpx", "_2.gpx"), pt.latitude, pt.longitude, pt.elevation])
+                        first_part = False
+                    else:
+                        print('CHECK')
+    return (trackpoints, trackpoints2)
+
+def gpx_to_postgres(data_dir, table_name, db='garmin_activities'):
     '''
-    data_dir  = input directory to put GPX waypoints in 
-    db = database 
-    table_name = table in db that gpx waypoints will be added to (should already exist in db) 
-        CREATE TABLE gpx_runs (filename CHAR(18) NOT NULL, date TIMESTAMP NOT NULL, lat FLOAT NOT NULL, lon FLOAT NOT NULL, ele FLOAT NOT NULL, speed FLOAT NOT NULL);
-    returns list of files that were parsed     
+    data_dir  = input directory to put GPX waypoints in
+    db = database
+    table_name = table in db that gpx waypoints will be added to (should already exist in db)
+        CREATE TABLE gpx_runs (date TIMESTAMP PRIMARY KEY, filename CHAR(18) NOT NULL, lat FLOAT NOT NULL, lon FLOAT NOT NULL, ele FLOAT NOT NULL, speed FLOAT NOT NULL);
+        CREATE TABLE gpx_bikes (date TIMESTAMP PRIMARY KEY, filename CHAR(18) NOT NULL, lat FLOAT NOT NULL, lon FLOAT NOT NULL, ele FLOAT NOT NULL, speed FLOAT NOT NULL);
+    returns list of files that were parsed
     '''
-    gpx_files = [i for i in sorted(os.listdir(data_dir)) if i.endswith(".gpx")]
+    gpx_files = [i for i in sorted(os.listdir(data_dir)) if i.endswith('.gpx')]
     try:
-        conn = psycopg2.connect(database=db, user="postgres", password="", host="localhost", port=5432)
+        conn = psycopg2.connect(database=db, user='postgres', password='', host='localhost', port=5432)
         cur = conn.cursor()
         for fi in gpx_files:
             gpx_file = open(os.path.join(data_dir, fi), 'r')
-            gpx = gpxpy.parse(gpx_file, version="1.1")
+            gpx = gpxpy.parse(gpx_file, version='1.1')
             for track in gpx.tracks:
                 for seg in track.segments:
                     for point_no, pt in enumerate(seg.points):
@@ -130,21 +154,26 @@ def gpx_to_postgres(data_dir, table_name, db="garmin_activities"):
                             speed = pt.speed_between(seg.points[point_no - 1])
                         elif point_no == 0:
                             speed = 0
-                        cur.execute("INSERT INTO "+table_name+" (filename, date, lat, lon, ele, speed) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
-                                [fi, pt.time, pt.latitude, pt.longitude, pt.elevation, speed])
+                        else:
+                            speed = 0
+                        ## add _2 to filename if consecutive trackpoints are more than 60 minutes apart 
+                        run_parts = split_gpx_at(fi = os.path.join(data_dir, fi), split_min = 60)
+                        for run_part in run_parts:
+                            cur.execute('INSERT INTO '+table_name+' (date, filename, lat, lon, ele, speed) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING',
+                                       run_part)
         conn.commit()
-        print("Records created successfully")
-        conn.close()
+        print('Records inserted successfully')
+        # conn.close()
         return gpx_files
 
     except (Exception, psycopg2.Error) as error:
-        print("Error while fetching data from PostgreSQL", error)
-    
+        print('Error while fetching data from PostgreSQL', error)
+
     finally:
         if conn:
             cur.close()
             conn.close()
-            print("PostgreSQL connection is closed")
+            print('PostgreSQL connection is closed')
 
 def tcx_to_postgres(data_dir, db='garmin_activities'):
     '''
