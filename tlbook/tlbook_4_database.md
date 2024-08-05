@@ -143,19 +143,19 @@ Aggregate functions combine multiple rows together to form a single value of mor
 ### Joins
 <b>inner join</b>  
 links two tables, 'table_name' and lookuptable, 'lut', using a common 'key' column, and returns rows where 'key' value exists in both tables  
-> SELECT * FROM table_name INNER JOIN lut USING (key)
+> SELECT * FROM table_name INNER JOIN lut USING (key);   
 
 <b>left join</b>  
 returns all rows from first table, table_name, with blank value where 'key' is missing in the second table, lut (will not have rows from second table where key is missing in first table)  
-> SELECT * FROM table_name LEFT JOIN lut ON table_name.key = lut.key
+> SELECT * FROM table_name LEFT JOIN lut ON table_name.key = lut.key;   
 
 <b>right join</b>  
 returns all rows from lut with blank value where 'key' is missing in table_name (will not have rows from first table whose key)   
-> SELECT * FROM table_name RIGHT JOIN lut ON table_name.key = lut.key 
+> SELECT * FROM table_name RIGHT JOIN lut ON table_name.key = lut.key;    
 
 <b>full outer join</b>  
 returns all rows from both tables   
-> SELECT * FROM table_name FULL OUTER JOIN lut ON table_name.key = lut.key 
+> SELECT * FROM table_name FULL OUTER JOIN lut ON table_name.key = lut.key;    
 
 
 ### Views  
