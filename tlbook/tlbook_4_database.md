@@ -186,9 +186,7 @@ View Types:
 
 [PostGIS](https://postgis.net/workshops/postgis-intro/security.html)
 
-```  
-GRANT INSERT,UPDATE,DELETE ON table_name TO user_name;
-```  
+> GRANT INSERT,UPDATE,DELETE ON table_name TO user_name;
 
 
 SQL Server:  
