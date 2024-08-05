@@ -2,10 +2,6 @@
 
 ---
 
-
-
-## DBMS (Database Management System)  
-
 <b>Database Design Considerations</b>:    
 - *Specific use-case: what is the need?*  
 - *What data needs to be stored, & what type of data is it?*
@@ -16,10 +12,15 @@
 <b>NoSQL (nonrelational DBMS)</b>:   
 Document-centered rather than table-centred. large data, structure varies. Stored in a [data lake](https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/what-is-a-data-lake#data-lake-definition). 
 - Unstructured data: No schema. Most data. Ex) Photos, chat lots, MP3     
-- Semi-structured data: Self-describing sctructure but no larger schema. Ex) NoSQL, XML, JSON  
+- Semi-structured data: Self-describing structure but no larger schema. Ex) XML, JSON  
 
-<b>SQL (relational DBMS)</b>:   
-- Structured data: Follows a schema with defined constraints and relationships. Stored in a data warehouse or data lake. Ex) Database or Excel table. 
+
+## RDBMS (Relational Database Management System)  
+
+<b>SQL (RDBMS)</b>:   
+- Structured data: Follows a schema with defined constraints and relationships. 
+- Stored in a [data warehouse](https://www.oracle.com/database/what-is-a-data-warehouse/) (ex: [BigQuery](https://cloud.google.com/bigquery/docs/geospatial-data)) or data lake (ex: database or Excel table). 
+
 
 <b>Cardinality</b>:   
 Relationship between tables, rows, and elements in a database. Ratio denotes the number of entities that another entity can be linked to.   
@@ -34,8 +35,6 @@ Charts that depict the entities (objects), relationships, and attributes in a da
 
 <u>Crows Notation Chart</u>:
 ![notation](img/Crow-Notation-Chart.png)
-
-
 
 <b>Normalization</b>:   
 The process of breaking down tables in a database & managing the relationships between them in order to minimize redundancy.    
@@ -52,8 +51,8 @@ Normal form levels assess danger of redundancy:
 - Second Normal Form (<b>2NF</b>)  - each non-key attribute is dependent on the entire primary key (all primary key columns).   
 - Third Normal Form (<b>3NF</b>)  - <b>each non-key attribute should depend on the key, the whole key, and nothing but the key</b>
 
+### Integrity
 
-### Data Integrity
 Refers to the total accuracy, consistency, and completeness of data.
 
 <b>Physical</b>: integrity of the body. Ex) issues from degraded storage, blackouts, hacker attacks   
@@ -65,30 +64,33 @@ Refers to the total accuracy, consistency, and completeness of data.
 <b>I</b>solation: Multiple users can access data at the same time        
 <b>D</b>urability: Committed transactions are saved to permanent storage     
 
-<b>Constraints</b>  
+### Constraints 
+
+
+
 ```CONSTRAINT``` types:   
 1. Domain: acceptable data type per column 
 2. Entity integrity: unique primary key values within a table cannot be null
 3. Referential (foreign key) integrity: uses foreign key to ensure consistent relationship between tables
 
-Examples:   
-* ```NOT NULL``` - ensures no NULL values for a given column  
-* ```UNIQUE``` - ensures all values for a given column are different  
-* ```PRIMARY KEY``` - combines ```NOT NULL``` and ```UNIQUE```  
-* ```FOREIGN KEY``` - prevents actions that would destroy links/relationships between tables  
-* ```DEFAULT``` - inserts specified default value if none is provided     
-~~~
-CREATE TABLE table_name 
-(employee int PRIMARY KEY, 
-salary decimal(10, 2) DEFAULT 50000.00);
-~~~
-
 * ```CHECK``` - ensures that values in a column or a group of columns meet a specific condition
-~~~
-ALTER TABLE table_name 
-ADD CONSTRAINT constraint_name 
-CHECK (condition);
-~~~
+> CREATE TABLE table_name (item VARCHAR PRIMARY KEY price NUMERIC CHECK (price > 0));
+
+add a constraint to an existing table:     
+> ALTER TABLE table_name ADD CONSTRAINT price CHECK (price > 0);
+
+
+* ```NOT NULL``` - ensures no NULL values for a given column
+* ```UNIQUE``` - ensures all values for a given column are different
+* ```PRIMARY KEY``` - combines ```NOT NULL``` and ```UNIQUE```
+> CREATE TABLE (activity_names CHAR(14) PRIMARY KEY, activity_gpx CHAR(18) UNIQUE NOT NULL, activity_tcx CHAR(18) UNIQUE NOT NULL);
+
+* ```FOREIGN KEY``` - prevents actions that would destroy links/relationships between tables
+> CREATE TABLE gpx_pts (filename CHAR(18) REFERENCES activity_names (activity_gpx), date TIMESTAMP PRIMARY KEY, lat FLOAT NOT NULL, lon FLOAT NOT NULL, ele FLOAT NOT NULL, speed FLOAT NOT NULL);   
+
+* ```CASCADE``` removes link between primary key (activity_names) & foreign key table:   
+> DROP TABLE activity_names CASCADE;
+
 
 * ```CREATE TRIGGER```  - executed when a database event occurs and are used to track edit history & data changes ( [Postgres](https://www.postgresql.org/docs/current/plpgsql-trigger.html) / [PostGIS](https://postgis.net/workshops/postgis-intro/history_tracking.html)  ) 
 
@@ -101,15 +103,10 @@ Similar to indexes in books, indexes in tables improve lookup performance, but b
 *Note different syntax to create clustered index in mySQL vs postgreSQL*: 
 
 * mySQL:
-~~~
-CREATE CLUSTERED INDEX index_name ON db.table_name (column_name);
-~~~
+> CREATE CLUSTERED INDEX index_name ON db.table_name (column_name);
+
 * postgreSQL:
-
-~~~
-CLUSTER table_name USING column_name;
-~~~
-
+> CLUSTER table_name USING column_name;
 
 
 ### Views  
@@ -170,15 +167,6 @@ print databases in postgres db server:
 print tables in connected db:  
 > \d 
 
-<b>create table</b> (in a connected database)
-> CREATE TABLE table_name (id_key INTEGER PRIMARY KEY, fullname varchar(100) NOT NULL);
-    
-<b>delete database</b> (must be disconnected from the database you're trying to delete)  
-> DROP DATABASE {db};
-
-<b>delete column</b>  
-> ALTER TABLE table_name DROP COLUMN column_name;
-
 ---
 
 ### Common clauses 
@@ -214,26 +202,6 @@ Aggregate functions combine multiple rows together to form a single value of mor
 
 ~~~
 SELECT 
-	CASE WHEN hometeam_id = 10189 THEN 'FC Schalke 04'
-        WHEN hometeam_id = 9823 THEN 'FC Bayern Munich'
-        ELSE 'Other' 
-        END AS home_team,
-	COUNT(id) AS total_matches
-FROM matches_germany
-GROUP BY home_team;
-~~~
-
-~~~
-SELECT 
-	season,
-	COUNT(CASE WHEN hometeam_id = 8650 AND home_goal > away_goal THEN 'home win count' END) AS home_wins, 
-	COUNT(CASE WHEN awayteam_id = 8650 AND away_goal > home_goal THEN 'away win count' END) AS away_wins, 
-FROM match
-GROUP BY season;
-~~~
-
-~~~
-SELECT 
 	season,
 	AVG(CASE 
 	    WHEN hometeam_id = 8445 AND home_goal > away_goal THEN 1 
@@ -250,27 +218,19 @@ GROUP BY season;
 ### Joins
 <b>inner join</b>  
 links two tables, 'table_name' and lookuptable, 'lut', using a common 'key' column, and returns rows where 'key' value exists in both tables  
-~~~
-SELECT * FROM table_name INNER JOIN lut USING (key)
-~~~
+> SELECT * FROM table_name INNER JOIN lut USING (key)
 
 <b>left join</b>  
 returns all rows from first table, table_name, with blank value where 'key' is missing in the second table, lut (will not have rows from second table where key is missing in first table)  
-~~~
-SELECT * FROM table_name LEFT JOIN lut ON table_name.key = lut.key
-~~~
+> SELECT * FROM table_name LEFT JOIN lut ON table_name.key = lut.key
 
 <b>right join</b>  
 returns all rows from lut with blank value where 'key' is missing in table_name (will not have rows from first table whose key)   
-~~~
-SELECT * FROM table_name RIGHT JOIN lut ON table_name.key = lut.key 
-~~~
+> SELECT * FROM table_name RIGHT JOIN lut ON table_name.key = lut.key 
 
 <b>full outer join</b>  
 returns all rows from both tables   
-~~~
-SELECT * FROM table_name FULL OUTER JOIN lut ON table_name.key = lut.key 
-~~~
+> SELECT * FROM table_name FULL OUTER JOIN lut ON table_name.key = lut.key 
 
 
 ---
