@@ -114,13 +114,13 @@ add a constraint to an existing table:
 - ```ORDER BY``` sorts the result.
 - ```LIMIT``` specifies the maximum number of rows that the query will return.
 - ```COUNT()```: count the number of rows
-~~~
-SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'table_name'
-~~~
+- 
+> SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'table_name';
+
 - ```SUM()```: the sum of the values in a column
-~~~
-SELECT SUM(minutes) FROM runs_tcx  
-~~~
+
+> SELECT SUM(minutes) FROM runs_tcx;
+
 - ```MAX()/MIN()```: the largest/smallest value
 - ```AVG()```: the average of the values in a column
 - ```ROUND()```: round the values in the column  
@@ -135,19 +135,10 @@ Aggregate functions combine multiple rows together to form a single value of mor
 ```CASE``` = similar to Python's ```if```, ```else``` statement   
 ```WHEN```, ```THEN```, ```ELSE```, ```END AS``` sets the new column name   
 
-~~~
-SELECT 
-	season,
-	AVG(CASE 
-	    WHEN hometeam_id = 8445 AND home_goal > away_goal THEN 1 
-	    WHEN hometeam_id = 8445 AND home_goal < away_goal THEN 0 
-	    END) AS pct_home_wins, 
-	AVG(CASE WHEN awayteam_id = 8445 AND away_goal > home_goal THEN 1
-	 WHEN awayteam_id = 8445 AND away_goal < home_goal THEN 0 
-	 END) AS pct_away_wins, 
-FROM match
-GROUP BY season;
-~~~
+> SELECT season,  
+> AVG(CASE WHEN hometeam_id = 8445 AND home_goal > away_goal THEN 1 WHEN hometeam_id = 8445 AND home_goal < away_goal THEN 0 END) AS pct_home_wins,   
+> AVG(CASE WHEN awayteam_id = 8445 AND away_goal > home_goal THEN 1 WHEN awayteam_id = 8445 AND away_goal < home_goal THEN 0 END) AS pct_away_wins,   
+> FROM match GROUP BY season;  
 
 ### Joins
 <b>inner join</b>  
