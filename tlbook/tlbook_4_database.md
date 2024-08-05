@@ -204,8 +204,8 @@ Refers to transfering / converting geospatial data between Python objects, ESRI 
 
 
 #### Store postgreSQL credentials in Linux:    
-> export POSTUSR={your-postgres-username}
-> export POSTPWD={your-postgres-pwd}
+> export POSTUSR={your-postgres-username}   
+> export POSTPWD={your-postgres-pwd}  
 
 If postgreSQL was added to PATH, open a terminal.   
 If not, go to the directory where PostgreSQL is installed then into the bin directory, then open a terminal.  
