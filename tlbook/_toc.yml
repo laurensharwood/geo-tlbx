@@ -1,0 +1,13 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+chapters:
+- file: tlbook_1_intro
+- file: tlbook_2_apps
+- file: tlbook_3_geodata
+- file: tlbook_4_database
+- file: tlbook_5_analysis
+- file: tlbook_6_linux
+- file: tlbook_7_programming

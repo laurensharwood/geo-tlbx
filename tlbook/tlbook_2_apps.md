@@ -1,4 +1,4 @@
-# Software: 
+# Software 
 
 ---
 
@@ -29,7 +29,8 @@ Virtual Environment:
   - *Con: slower to install packages, though [Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) is a lightweight alternative* 
 
 IDE:  
-- [ ] [PyCharm](https://www.jetbrains.com/pycharm/download/)  
+- [ ] [PyCharm](https://www.jetbrains.com/pycharm/download/)
+- [ ] [Spyder](https://www.spyder-ide.org/)   
 - [X] Jupyter Lab (install from activated virtual environment with Python)
 - [ ] [RStudio](https://posit.co/downloads/)  
 
@@ -86,7 +87,7 @@ ii) in the last row of the file enter your app's install location, ex: /Library/
 
 ## [ESRI Products](https://www.esri.com/en-us/arcgis/products/index)
 
-
+[ESRI Developer](https://developers.arcgis.com/)
 
 ### 1) [ArcGIS Pro](https://www.esri.com/en-us/arcgis/products/arcgis-pro/overview)
 
