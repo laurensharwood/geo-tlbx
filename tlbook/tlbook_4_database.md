@@ -56,7 +56,7 @@ Similar to indexes in books, indexes in tables improve lookup performance, but b
 
 <b>Clustered Index</b>: index sorted by a column 
 
-*Note different syntax to create clustered index in mySQL vs postgreSQL*: 
+*Note different syntax to create clustered index in postgreSQL vs mySQL*: 
 
 * postgreSQL:
 > CLUSTER table_name USING column_name;
@@ -204,10 +204,9 @@ Refers to transfering / converting geospatial data between Python objects, ESRI 
 
 
 #### Store postgreSQL credentials in Linux:    
-```
-export POSTUSR={your-postgres-username}
-export POSTPWD={your-postgres-pwd}
-```  
+> export POSTUSR={your-postgres-username}
+> export POSTPWD={your-postgres-pwd}
+
 If postgreSQL was added to PATH, open a terminal.   
 If not, go to the directory where PostgreSQL is installed then into the bin directory, then open a terminal.  
 
