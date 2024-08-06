@@ -18,15 +18,6 @@ muni_working.ipynb
 
 PlanetSAM_working.ipynb
 
-tlbook/  
-1. Intro
-2. Apps
-3. Data
-5. Databases
-4. Analysis
-6. Programming
-7. Linux
-
 time-series/  
 
 sentinel-1/
