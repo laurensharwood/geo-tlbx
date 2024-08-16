@@ -2,6 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+## under FILES, unzip
+import gzip
+import shutil
 ## under FILES, for find_file_diff function
 import difflib
 ## for TIME functions
@@ -13,6 +16,7 @@ import math
 import psycopg2
 ## under MDB
 import sqlite3
+
 
 
 ################################
@@ -41,7 +45,12 @@ def find_file_diff(file1, file2, diff_file):
     ## returns difference file's filepath as a string
     return diff_file 
 
-
+def unzip_gz(file):
+    with gzip.open(file, 'rb') as f_in:
+        with open(file.replace('.gz', ''), 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)  
+    return file.replace('.gz', '')
+            
 ################################
 ## SUMMARY STATISTICS 
 ################################
