@@ -70,18 +70,22 @@ def extract_pts(gdfPts, inRast):
         gdf[col_name] = [x[0] for x in src.sample(coords_list)]
     return gdf
 
-def line_pofile(inRast, coords):
+def line_pofile(inRast, lineGdf):
     """uses 'inRast':elevation raster/DEM to calculate the profile (distance vs. altitude) of a path segment from 'coords': the list of coordinates. 
-    returns two items: the total distance (in miles) and elevation (in feet)"""
+    returns 3 items: a line of coordinate points, total distance (in miles) and elevation (in feet)
+    XY_coords, distance, elevation = line_pofile(inRast, lineGdf)
+    """
     # coordinates are [lon, lat], flip for rasterio
-    coords = [[c[1], c[0]] for c in coords]
     with rio.open(inRast) as src:
+        if src.crs != lineGdf.crs:
+            lineGdf = lineGdf.to_crs(src.crs)
+        coords = lineGdf.geometry.line_merge().geometry.apply(lambda geom: list(geom.coords)).iloc[0]
         elev = [x[0]*3.28084  for x in src.sample(coords)]
-    dist = [0.0]
-    for j in range(len(coords) - 1):
-        # use haversine distance
-        dist.append(dist[j] + haversine((coords[j][1], coords[j][0]), (coords[j + 1][1], coords[j + 1][0]), Unit.MILES))
-    return dist, elev
+        dist = [0.0]
+        for j in range(len(coords) - 1):
+            # use haversine distance
+            dist.append(dist[j] + haversine((coords[j][1], coords[j][0]), (coords[j + 1][1], coords[j + 1][0])))
+    return coords, dist, elev
 
 def zonal_stat(instance_shape, in_rast, stat="mean"): 
     """
